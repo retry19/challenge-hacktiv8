@@ -30,8 +30,8 @@ func WithLocking() {
 
 	for _, v := range firstData {
 		wg.Add(1)
+		mu.Lock()
 		go func(v interface{}) {
-			mu.Lock()
 			fmt.Println(v)
 			mu.Unlock()
 			wg.Done()
@@ -40,8 +40,8 @@ func WithLocking() {
 
 	for _, v := range secondData {
 		wg.Add(1)
+		mu.Lock()
 		go func(v interface{}) {
-			mu.Lock()
 			fmt.Println(v)
 			mu.Unlock()
 			wg.Done()
