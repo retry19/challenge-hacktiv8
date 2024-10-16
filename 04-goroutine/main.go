@@ -31,21 +31,13 @@ func WithLocking() {
 	for _, v := range firstData {
 		wg.Add(1)
 		mu.Lock()
-		go func(v interface{}) {
-			fmt.Println(v)
-			mu.Unlock()
-			wg.Done()
-		}(v)
+		go print("bisa", v.(string), &wg, &mu)
 	}
 
 	for _, v := range secondData {
 		wg.Add(1)
 		mu.Lock()
-		go func(v interface{}) {
-			fmt.Println(v)
-			mu.Unlock()
-			wg.Done()
-		}(v)
+		go print("coba", v.(string), &wg, &mu)
 	}
 
 	wg.Wait()
@@ -70,19 +62,25 @@ func WithoutLocking() {
 
 	for _, v := range firstData {
 		wg.Add(1)
-		go func(v interface{}) {
-			fmt.Println(v)
-			wg.Done()
-		}(v)
+		go print("bisa", v.(string), &wg, nil)
 	}
 
 	for _, v := range secondData {
 		wg.Add(1)
-		go func(v interface{}) {
-			fmt.Println(v)
-			wg.Done()
-		}(v)
+		go print("coba", v.(string), &wg, nil)
 	}
 
 	wg.Wait()
+}
+
+func print(prefix string, index string, wg *sync.WaitGroup, mu *sync.Mutex) {
+	data := []interface{}{fmt.Sprintf("%s1", prefix), fmt.Sprintf("%s2", prefix), fmt.Sprintf("%s3", prefix)}
+
+	fmt.Println(data, index)
+
+	if mu != nil {
+		mu.Unlock()
+	}
+
+	wg.Done()
 }
