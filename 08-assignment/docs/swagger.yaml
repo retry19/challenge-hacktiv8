@@ -1,0 +1,216 @@
+basePath: /
+definitions:
+  models.CreateOrderDto:
+    properties:
+      customer_name:
+        type: string
+      items:
+        items:
+          properties:
+            description:
+              type: string
+            item_code:
+              type: string
+            quantity:
+              type: integer
+          type: object
+        type: array
+      ordered_at:
+        type: string
+    type: object
+  models.Item:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      item_code:
+        type: string
+      order_id:
+        type: integer
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.Order:
+    properties:
+      created_at:
+        type: string
+      customer_name:
+        type: string
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.Item'
+        type: array
+      ordered_at:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ResponseData:
+    properties:
+      data: {}
+      status:
+        type: boolean
+    type: object
+  models.ResponseError:
+    properties:
+      message:
+        type: string
+      status:
+        type: boolean
+    type: object
+  models.UpdateOrderDto:
+    properties:
+      customer_name:
+        type: string
+      items:
+        items:
+          properties:
+            description:
+              type: string
+            item_code:
+              type: string
+            quantity:
+              type: integer
+          type: object
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: rezarahmanudin@gmail.com
+    name: Reza Rachmanuddin
+    url: https://github.com/retry19
+  description: A simple API for Hacktiv8 - 08 Assignment
+  title: Hacktiv8 - 08 Assignment
+  version: "0.1"
+paths:
+  /orders:
+    get:
+      description: Get all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.ResponseData'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Order'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      summary: Get all orders
+      tags:
+      - Orders
+    post:
+      description: Create an order
+      parameters:
+      - description: Create order dto
+        in: body
+        name: bodyPayload
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOrderDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.ResponseData'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Order'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      summary: Create an order
+      tags:
+      - Orders
+  /orders/{id}:
+    delete:
+      description: Delete an order by id
+      parameters:
+      - description: Order id
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      summary: Delete an order
+      tags:
+      - Orders
+    put:
+      description: Update an order by id
+      parameters:
+      - description: Order id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update order dto
+        in: body
+        name: bodyPayload
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateOrderDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.ResponseData'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Order'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      summary: Update an order
+      tags:
+      - Orders
+swagger: "2.0"
