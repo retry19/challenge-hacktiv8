@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="retro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{or .Title "Ask me anything"}}</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="min-h-dvh max-w-screen-sm mx-auto relative">
+    <div class="navbar bg-base-100">
+      <div class="flex-1">
+        <a class="btn btn-ghost text-xl">Ask me anything</a>
+      </div>
+      <div class="flex-none">
+        <details class="dropdown dropdown-bottom dropdown-end">
+          <summary class="btn btn-square btn-ghost">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              class="inline-block h-5 w-5 stroke-current">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
+            </svg>
+          </summary>
+          <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <li><button type="button" id="reset-conversation-btn">Reset conversation</button></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+    {{embed}}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const conversationContainer = document.getElementById('conversation-container');
+
+    const appendConversation = conversation => {
+      conversationContainer.insertAdjacentHTML('beforeend', `
+        <div class="chat chat-end">
+          <div class="chat-bubble">${conversation.question}</div>
+        </div>
+      `);
+      conversationContainer.insertAdjacentHTML('beforeend', `
+        <div class="chat chat-start">
+          <div class="chat-image avatar">
+            <div class="w-10 rounded-full">
+              <img
+                alt="Tailwind CSS chat bubble component"
+                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+            </div>
+          </div>
+          <div class="chat-bubble">${marked.parse(conversation.answer)}</div>
+        </div>
+      `);
+
+      conversationContainer.scrollTo(0, conversationContainer.scrollHeight);
+    };
+
+    if (conversationContainer) {
+      const [conversations] = document.cookie
+        .split(';')
+        .map(cookie => cookie.split('='))
+        .filter(cookie => cookie[0] === 'last-conversation')
+        .map(cookie => JSON.parse(cookie[1]));
+
+      if (conversations?.length) {
+        conversationContainer.innerHTML = '';
+
+        for (const conversation of conversations) {
+          appendConversation(conversation);
+        }
+      }
+    }
+
+    document.getElementById('reset-conversation-btn').addEventListener('click', e => {
+      document.cookie = 'last-conversation=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+      location.reload();
+    });
+
+    const questionInput = document.getElementById('question-input');
+
+    let isQuestionInputFocused = false;
+    questionInput.addEventListener('focus', e => {
+      isQuestionInputFocused = true;
+    });
+    questionInput.addEventListener('blur', e => {
+      isQuestionInputFocused = false;
+    });
+
+    window.addEventListener('keypress', e => {
+      if (e.which == 47 && questionInput && !isQuestionInputFocused) {
+        e.preventDefault();
+        questionInput.focus();
+      }
+    });
+
+    const toggleQuestionInput = (disabled) => {
+      questionInput.disabled = disabled;
+
+      const questionInputLoading = document.getElementById('question-input-loading');
+      const questionInputKeyboard = document.getElementById('question-input-keyboard');
+
+      if (disabled) {
+        questionInputLoading.style.display = 'block';
+        questionInputKeyboard.style.display = 'none';
+      } else {
+        questionInputLoading.style.display = 'none';
+        questionInputKeyboard.style.display = 'block';
+      }
+    };
+    
+    document.getElementById('ask-form').addEventListener('submit', async e => {
+      e.preventDefault();
+
+      if (!questionInput.value) {
+        return;
+      }
+
+      toggleQuestionInput(true);
+
+      try {
+        const url = new URL('/api/ask', window.location.origin);
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: questionInput.value,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to ask question');
+        }
+
+        const data = await response.json();
+        if (!data.status) {
+          throw new Error(data.message);
+        }
+
+        appendConversation(data.data);
+        questionInput.value = '';
+        questionInput.blur();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        toggleQuestionInput(false);
+      }
+    });
+  </script>
+</body>
+</html>
